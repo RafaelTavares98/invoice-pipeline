@@ -6,3 +6,4 @@ raw/
 out/
 mail/
 .venv/
+outbox/
