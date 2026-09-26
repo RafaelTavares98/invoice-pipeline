@@ -1,0 +1,450 @@
+{
+  "A": {
+    "accent": [
+      0.15,
+      0.15,
+      0.15
+    ],
+    "bank_line": "",
+    "code": "A",
+    "columns": [
+      [
+        "Description",
+        "description"
+      ],
+      [
+        "Qty",
+        "quantity"
+      ],
+      [
+        "Unit price",
+        "unit_price"
+      ],
+      [
+        "VAT %",
+        "tax_rate"
+      ],
+      [
+        "Net amount",
+        "line_total"
+      ]
+    ],
+    "currency": "EUR",
+    "date_order": "day_first",
+    "decimal_mark": "comma",
+    "due_label": "Payment due",
+    "issued_label": "Invoice date",
+    "landscape": false,
+    "line_count": 3,
+    "name": "European VAT invoice",
+    "note": "",
+    "number_label": "Invoice no.",
+    "second_currency": "",
+    "seller": "Nordwind Handel GmbH",
+    "seller_address": [
+      "Hafenstrasse 112",
+      "20359 Hamburg",
+      "Germany"
+    ],
+    "ship_to": false,
+    "style": "column",
+    "tax_id": "DE 118 552 041",
+    "tax_label": "VAT ID",
+    "terms": "Payment within 30 days. Reverse charge does not apply.",
+    "title": "Rechnung / Invoice",
+    "totals_above_lines": false
+  },
+  "B": {
+    "accent": [
+      0.15,
+      0.15,
+      0.15
+    ],
+    "bank_line": "",
+    "code": "B",
+    "columns": [
+      [
+        "Description",
+        "description"
+      ],
+      [
+        "Qty",
+        "quantity"
+      ],
+      [
+        "Unit price",
+        "unit_price"
+      ],
+      [
+        "Tax %",
+        "tax_rate"
+      ],
+      [
+        "Amount",
+        "line_total"
+      ]
+    ],
+    "currency": "USD",
+    "date_order": "month_first",
+    "decimal_mark": "dot",
+    "due_label": "Due date",
+    "issued_label": "Date",
+    "landscape": false,
+    "line_count": 3,
+    "name": "United States commercial invoice",
+    "note": "",
+    "number_label": "Invoice #",
+    "second_currency": "",
+    "seller": "Blue Harbor Supply Co.",
+    "seller_address": [
+      "4120 Cedar Point Road",
+      "Portland, OR 97203",
+      "United States"
+    ],
+    "ship_to": false,
+    "style": "split",
+    "tax_id": "84-3910277",
+    "tax_label": "EIN",
+    "terms": "Net 30. Late balances accrue 1.5% monthly.",
+    "title": "Commercial invoice",
+    "totals_above_lines": false
+  },
+  "C": {
+    "accent": [
+      0.15,
+      0.15,
+      0.15
+    ],
+    "bank_line": "",
+    "code": "C",
+    "columns": [
+      [
+        "Consignment description",
+        "description"
+      ],
+      [
+        "Pieces",
+        "quantity"
+      ],
+      [
+        "Weight kg",
+        "weight"
+      ],
+      [
+        "Volume m3",
+        "volume"
+      ],
+      [
+        "Rate",
+        "unit_price"
+      ],
+      [
+        "Tax %",
+        "tax_rate"
+      ],
+      [
+        "Charge",
+        "line_total"
+      ]
+    ],
+    "currency": "USD",
+    "date_order": "iso",
+    "decimal_mark": "dot",
+    "due_label": "Due",
+    "issued_label": "Invoice date",
+    "landscape": true,
+    "line_count": 6,
+    "name": "Freight invoice",
+    "note": "",
+    "number_label": "Invoice no.",
+    "second_currency": "",
+    "seller": "Meridian Freight Lines",
+    "seller_address": [
+      "Pier 9, Terminal Road",
+      "Rotterdam 3089 JS",
+      "Netherlands"
+    ],
+    "ship_to": false,
+    "style": "ledger_wide",
+    "tax_id": "NL 8201 55 913 B01",
+    "tax_label": "VAT ID",
+    "terms": "Charges per tariff MFL-2026. Disputes within 14 days.",
+    "title": "Freight invoice",
+    "totals_above_lines": false
+  },
+  "D": {
+    "accent": [
+      0.15,
+      0.15,
+      0.15
+    ],
+    "bank_line": "",
+    "code": "D",
+    "columns": [
+      [
+        "Goods description",
+        "description"
+      ],
+      [
+        "Qty",
+        "quantity"
+      ],
+      [
+        "Unit price",
+        "unit_price"
+      ],
+      [
+        "Duty %",
+        "tax_rate"
+      ],
+      [
+        "Amount",
+        "line_total"
+      ]
+    ],
+    "currency": "CNY",
+    "date_order": "iso",
+    "decimal_mark": "dot",
+    "due_label": "Payment due",
+    "issued_label": "Date of issue",
+    "landscape": false,
+    "line_count": 3,
+    "name": "Asian export invoice",
+    "note": "",
+    "number_label": "Invoice no.",
+    "second_currency": "USD",
+    "seller": "Kowloon Bay Trading Ltd.",
+    "seller_address": [
+      "Unit 1802, Kwun Tong Road",
+      "Kowloon",
+      "Hong Kong"
+    ],
+    "ship_to": false,
+    "style": "form_grid",
+    "tax_id": "61925448-000-03-26-A",
+    "tax_label": "BR no.",
+    "terms": "FOB Hong Kong. Settlement in USD at the stated rate.",
+    "title": "Export invoice",
+    "totals_above_lines": true
+  },
+  "E": {
+    "accent": [
+      0.09,
+      0.42,
+      0.3
+    ],
+    "bank_line": "Sort code 04-00-75  Account 21884190",
+    "code": "E",
+    "columns": [
+      [
+        "Item",
+        "description"
+      ],
+      [
+        "Qty",
+        "quantity"
+      ],
+      [
+        "Price",
+        "unit_price"
+      ],
+      [
+        "Tax %",
+        "tax_rate"
+      ],
+      [
+        "Amount",
+        "line_total"
+      ]
+    ],
+    "currency": "GBP",
+    "date_order": "day_first",
+    "decimal_mark": "dot",
+    "due_label": "Due date",
+    "issued_label": "Issue date",
+    "landscape": false,
+    "line_count": 3,
+    "name": "Retail invoice with a coloured band",
+    "note": "Thank you for your order.",
+    "number_label": "Invoice no.",
+    "second_currency": "",
+    "seller": "Larkspur Provisions",
+    "seller_address": [
+      "77 Market Row",
+      "Bristol BS1 4QT",
+      "United Kingdom"
+    ],
+    "ship_to": false,
+    "style": "banded",
+    "tax_id": "GB 419 2288 03",
+    "tax_label": "VAT no.",
+    "terms": "Pay by bank transfer, quoting the invoice number.",
+    "title": "Invoice",
+    "totals_above_lines": false
+  },
+  "F": {
+    "accent": [
+      0.15,
+      0.15,
+      0.15
+    ],
+    "bank_line": "",
+    "code": "F",
+    "columns": [
+      [
+        "Full description of goods",
+        "description"
+      ],
+      [
+        "Qty",
+        "quantity"
+      ],
+      [
+        "Unit value",
+        "unit_price"
+      ],
+      [
+        "Duty %",
+        "tax_rate"
+      ],
+      [
+        "Total value",
+        "line_total"
+      ]
+    ],
+    "currency": "USD",
+    "date_order": "iso",
+    "decimal_mark": "dot",
+    "due_label": "Payment due",
+    "issued_label": "Date of export",
+    "landscape": false,
+    "line_count": 4,
+    "name": "Customs commercial invoice",
+    "note": "",
+    "number_label": "Invoice no.",
+    "second_currency": "",
+    "seller": "Halden Export Services",
+    "seller_address": [
+      "Warehouse 4, Dock Road",
+      "Felixstowe IP11 3SY",
+      "United Kingdom"
+    ],
+    "ship_to": true,
+    "style": "boxed",
+    "tax_id": "GB 662 0041 55 000",
+    "tax_label": "EORI",
+    "terms": "Declared for customs purposes. DAP, incoterms 2020.",
+    "title": "Commercial invoice",
+    "totals_above_lines": false
+  },
+  "G": {
+    "accent": [
+      0.15,
+      0.15,
+      0.15
+    ],
+    "bank_line": "IBAN BE71 0961 2345 6769",
+    "code": "G",
+    "columns": [
+      [
+        "Service",
+        "description"
+      ],
+      [
+        "Hours",
+        "quantity"
+      ],
+      [
+        "Rate",
+        "unit_price"
+      ],
+      [
+        "VAT %",
+        "tax_rate"
+      ],
+      [
+        "Amount",
+        "line_total"
+      ]
+    ],
+    "currency": "EUR",
+    "date_order": "day_first",
+    "decimal_mark": "comma",
+    "due_label": "Due date",
+    "issued_label": "Invoice date",
+    "landscape": false,
+    "line_count": 4,
+    "name": "Studio invoice, typographic",
+    "note": "",
+    "number_label": "Invoice",
+    "second_currency": "",
+    "seller": "Atelier Fenwick",
+    "seller_address": [
+      "Rue des Tanneurs 18",
+      "1000 Brussels",
+      "Belgium"
+    ],
+    "ship_to": false,
+    "style": "minimal",
+    "tax_id": "BE 0742 611 903",
+    "tax_label": "VAT",
+    "terms": "Payment within 14 days. Reverse charge applies.",
+    "title": "Invoice",
+    "totals_above_lines": false
+  },
+  "H": {
+    "accent": [
+      0.62,
+      0.16,
+      0.16
+    ],
+    "bank_line": "",
+    "code": "H",
+    "columns": [
+      [
+        "Qty",
+        "quantity"
+      ],
+      [
+        "Description",
+        "description"
+      ],
+      [
+        "Unit price",
+        "unit_price"
+      ],
+      [
+        "Tax %",
+        "tax_rate"
+      ],
+      [
+        "Amount",
+        "line_total"
+      ]
+    ],
+    "currency": "USD",
+    "date_order": "month_first",
+    "decimal_mark": "dot",
+    "due_label": "Due date",
+    "issued_label": "Invoice date",
+    "landscape": false,
+    "line_count": 3,
+    "name": "Repair invoice, quantity first",
+    "note": "Thank you for your business.",
+    "number_label": "Invoice #",
+    "second_currency": "",
+    "seller": "Eastgate Motor Works",
+    "seller_address": [
+      "1912 Harvest Lane",
+      "Columbus, OH 43215",
+      "United States"
+    ],
+    "ship_to": true,
+    "style": "qty_first",
+    "tax_id": "31-0765442",
+    "tax_label": "EIN",
+    "terms": "Payment is due within 15 days.",
+    "title": "Invoice",
+    "totals_above_lines": false
+  }
+}
