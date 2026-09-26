@@ -96,7 +96,9 @@ def _read_one(stored_file: StoredFile, kind: str, seen_numbers, ocr_reader):
     invoices in the mailbox are still owed to whoever is waiting.
     """
     try:
-        lines = read_pages(stored_file.path, ocr_reader=ocr_reader)
+        lines = read_pages(
+            stored_file.path, ocr_reader=ocr_reader, kind=kind
+        )
     except Exception as failure:
         return None, f"{stored_file.filename}: {failure}"
     layout = detect_layout(lines)

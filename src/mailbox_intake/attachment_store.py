@@ -27,12 +27,17 @@ def fetch_new(mailbox, store: Path) -> List[StoredFile]:
 
     Returns only what was new on this pass, so a second run over an
     unchanged mailbox returns nothing at all.
+
+    A message that carries no attachment is left untouched, and out of the
+    manifest. This pipeline reads invoices out of files; the mail that
+    only has words in its body belongs to the reader that handles those,
+    and marking it done here would take it away from that reader.
     """
     store.mkdir(parents=True, exist_ok=True)
     manifest = read_manifest(store)
     fresh: List[StoredFile] = []
     for message in mailbox.messages():
-        if message.identifier in manifest:
+        if message.identifier in manifest or not message.attachments:
             continue
         stored_names = []
         for filename, payload in message.attachments:

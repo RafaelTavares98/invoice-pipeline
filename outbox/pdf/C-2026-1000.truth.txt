@@ -1,0 +1,14 @@
+Meridian Freight Lines
+Pier 9, Terminal Road, Rotterdam 3089 JS, Netherlands
+VAT ID: NL 8201 55 913 B01
+Invoice no.: C-2026-1000 Invoice date: 2026-01-05 Due: 2026-02-04 Currency: USD
+Bill to: Aurora Nordic Distribution
+Consignment description Pieces Weight kg Volume m3 Rate Tax % Charge
+Stainless hinge, 40mm 8.00 19.20 0.48 82.14 0.00 657.12
+Insulated cable reel 8.00 19.20 0.48 4.18 0.00 33.44
+Packing foam sheet 11.00 26.40 0.66 86.84 0.00 955.24
+Freight surcharge, fuel 3.00 7.20 0.18 72.24 0.00 216.72
+Pallet wrap, heavy duty 1.00 2.40 0.06 9.38 0.00 9.38
+Warehouse handling fee 1.00 2.40 0.06 23.44 0.00 23.44
+Subtotal: 1,895.34 Tax: 0.00 Total: 1,895.34
+Charges per tariff MFL-2026. Disputes within 14 days.

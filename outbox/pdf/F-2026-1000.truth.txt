@@ -1,0 +1,21 @@
+Commercial invoice
+Shipper / exporter
+Halden Export Services
+Warehouse 4, Dock Road
+Consignee: Pemberton & Clyde Retail
+Felixstowe IP11 3SY
+United Kingdom
+EORI: GB 662 0041 55 000
+Invoice no.: F-2026-1000
+Date of export: 2026-01-05
+Payment due: 2026-02-04
+Currency: USD
+Full description of goods Qty Unit value Duty % Total value
+Stainless hinge, 40mm 7.00 57.66 0.00 403.62
+Insulated cable reel 5.00 17.93 0.00 89.65
+Packing foam sheet 9.00 95.43 0.00 858.87
+Freight surcharge, fuel 9.00 11.66 0.00 104.94
+Subtotal: 1,457.08
+Tax: 0.00
+Total: 1,457.08
+Declared for customs purposes. DAP, incoterms 2020.

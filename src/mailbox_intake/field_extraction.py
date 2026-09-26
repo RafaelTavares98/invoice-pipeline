@@ -126,12 +126,17 @@ def read_buyer(lines: List[str]) -> str:
 
 
 def read_currency(lines: List[str]) -> str:
-    """The currency code, which is three letters and nothing else."""
+    """The currency code, which is three letters and nothing else.
+
+    The case is not trusted and is put right here. An engine reading a
+    scan returns "usd" as often as "USD", and a currency lost to a small
+    letter would then be reported as an unknown code.
+    """
     value = find_field(lines, "Currency")
     if not value:
         return ""
-    found = re.search(r"\b([A-Z]{3})\b", value)
-    return found.group(1) if found else ""
+    found = re.search(r"\b([A-Za-z]{3})\b", value)
+    return found.group(1).upper() if found else ""
 
 
 def read_grand_total(lines, layout: Layout) -> Optional[Decimal]:

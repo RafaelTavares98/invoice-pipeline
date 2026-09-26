@@ -159,6 +159,19 @@ def test_a_quantity_printed_before_the_description_is_still_read(tmp_path):
         assert taken.quantity == given.quantity
 
 
+def test_a_currency_in_small_letters_is_still_read():
+    """An engine reading a scan returns "usd" as often as "USD"."""
+    from mailbox_intake.field_extraction import read_currency
+
+    assert read_currency(["Currency: usd"]) == "USD"
+
+
+def test_a_page_with_no_currency_invents_none():
+    from mailbox_intake.field_extraction import read_currency
+
+    assert read_currency(["Invoice no: B-2026-1000"]) == ""
+
+
 def test_the_total_label_does_not_match_the_subtotal_row():
     lines = ["Subtotal: 100.00", "Tax: 8.25", "Total: 108.25"]
 

@@ -2,9 +2,13 @@
 
     python run.py demo
     python run.py read --inbox mail --store raw --out out
+    python run.py send --to you@example.com
 
-`demo` fills a mailbox with invented invoices and then reads them back,
-so the whole thing can be shown without an account anywhere.
+`demo` fills a folder mailbox with invented invoices and then reads them
+back, so the whole thing can be shown without an account anywhere.
+
+`send` posts the same invented invoices to a real address, each under its
+issuer's own name, so the chain can be proved against a real server.
 """
 
 import argparse
@@ -15,6 +19,9 @@ sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 import run_pipeline  # noqa: E402
 from invoice_generator.build_invoice import fill_mailbox  # noqa: E402
+from invoice_generator.mail_delivery import (  # noqa: E402
+    MissingAccount, send_invoices,
+)
 from mailbox_intake.mail_sources import (  # noqa: E402
     ImapMailbox, LocalMailbox,
 )
@@ -26,6 +33,8 @@ def main(argv=None) -> int:
     arguments = build_parser().parse_args(argv)
     if arguments.command == "demo":
         return run_demo(Path(arguments.workdir))
+    if arguments.command == "send":
+        return send_real(arguments)
     return run_once(arguments)
 
 
@@ -46,6 +55,13 @@ def build_parser() -> argparse.ArgumentParser:
     once.add_argument("--imap-host", default="")
     once.add_argument("--imap-user", default="")
     once.add_argument("--imap-folder", default="INBOX")
+
+    post = commands.add_parser(
+        "send", help="invent invoices and mail them to a real address"
+    )
+    post.add_argument("--workdir", default="outbox")
+    post.add_argument("--per-layout", type=int, default=1)
+    post.add_argument("--to", default="")
     return parser
 
 
@@ -63,6 +79,30 @@ def run_demo(workdir: Path) -> int:
             ocr_reader=tesseract_reader,
         )
     )
+    return 0
+
+
+def send_real(arguments) -> int:
+    """Invent invoices and mail them to a real address.
+
+    The eight issuers keep their own names on the envelope. The account
+    doing the sending comes from the environment, never from an argument,
+    so no password reaches the shell history.
+    """
+    workdir = Path(arguments.workdir)
+    filled = fill_mailbox(
+        workdir / "drafts",
+        per_layout=arguments.per_layout,
+        workspace=workdir / "pdf",
+    )
+    try:
+        sent = send_invoices(filled, recipient=arguments.to or None)
+    except MissingAccount as missing:
+        print(missing)
+        return 1
+    for delivery in sent:
+        print(f"{delivery.invoice_number}  from {delivery.sender}")
+    print(f"sent {len(sent)} invoices")
     return 0
 
 

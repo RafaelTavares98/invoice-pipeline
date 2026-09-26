@@ -72,13 +72,20 @@ def read_text_layer(path: Path) -> Optional[str]:
     return joined if joined.strip() else None
 
 
-def read_pages(path: Path, ocr_reader: Callable[[Path], str]) -> List[str]:
+def read_pages(
+    path: Path, ocr_reader: Callable[[Path], str], kind: str = None
+) -> List[str]:
     """Return the lines of a PDF, whichever way they have to be read.
 
     `ocr_reader` turns a page image into text. It is required, because a
     caller that forgot it would silently return nothing for every scan.
+
+    `kind` is what `classify` already said about this file. A caller that
+    asked once passes the answer in, because classifying opens and parses
+    the whole document, and doing that twice for every page doubles the
+    work of a run for nothing.
     """
-    if classify(path) == TEXT_LAYER:
+    if (kind or classify(path)) == TEXT_LAYER:
         text = read_text_layer(path) or ""
     else:
         text = ocr_reader(path)

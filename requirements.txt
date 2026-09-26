@@ -3,4 +3,5 @@ pdfplumber>=0.11
 pillow>=10.0
 numpy>=1.24
 pytesseract>=0.3.10
+keyring>=24.0
 pytest>=8.0
