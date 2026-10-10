@@ -1,9 +1,21 @@
+# Everything here is made by running the project. None of it belongs in
+# the repository: it is a megabyte of PDFs that `python run.py --weeks`
+# rebuilds in seconds, and keeping it would hide the code under it.
+
+out/
+inbox/
+data/
+
+# The handwritten TDD notebook. It is a study record, not part of the
+# project, and it is a third of a megabyte of JSON.
+build_throught_notes.ipynb
+
+# Python leftovers
 __pycache__/
 *.pyc
 .pytest_cache/
-demo/
-raw/
-out/
-mail/
 .venv/
-outbox/
+
+# A few invoices are committed on purpose, so that a visitor can see what
+# the project produces without installing anything.
+!samples/
