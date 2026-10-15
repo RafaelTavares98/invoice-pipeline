@@ -1,0 +1,42 @@
+# The pipeline running live, Prometheus scraping it, Grafana drawing it.
+#
+#   cd monitoring && docker compose up -d --build
+#
+# The real run, from the WSL copy of the repo, with Python on Windows:
+#
+#   PIPELINE_HOST=$(ip route | awk '/default/ {print $3}') \
+#       docker compose up -d prometheus grafana
+#   Grafana:    http://localhost:3000   (opens straight on the dashboard)
+#   Prometheus: http://localhost:9090
+#   Metrics:    http://localhost:9108/metrics
+
+services:
+  pipeline:
+    build: ..
+    command: ["python", "run.py", "monitor", "15"]
+    ports: ["9108:9108"]
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports: ["9090:9090"]
+    # Lets Prometheus reach the exporters on the host. Run from WSL, the
+    # host is Windows: pass its address, the WSL default gateway, as
+    # PIPELINE_HOST=$(ip route | awk '/default/ {print $3}').
+    extra_hosts: ["host.docker.internal:${PIPELINE_HOST:-host-gateway}"]
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Viewer"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/pipeline.json
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: ["3000:3000"]
+    depends_on: [prometheus]
+    restart: unless-stopped

@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  # The simulated live run, when the compose file's pipeline service runs.
+  - job_name: invoice-pipeline
+    static_configs:
+      - targets: ["pipeline:9108"]
+  # The real run on the host: `python watch.py --metrics 9108` files the
+  # mailbox, `python run.py backlog --send --metrics` sends the replies.
+  - job_name: invoice-reader
+    static_configs:
+      - targets: ["host.docker.internal:9108"]
+  - job_name: invoice-sender
+    static_configs:
+      - targets: ["host.docker.internal:9110"]
+  # Project 02's anomaly figures, served on the host by `run.py metrics`.
+  - job_name: invoice-anomalies
+    static_configs:
+      - targets: ["host.docker.internal:9109"]

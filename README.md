@@ -1,247 +1,240 @@
-Imagine you just got transferred to the Production and Logistics Cost department in a cosmetics company called Moty.
-
-In your first day you realize that the department inbox has hundreds of unread e-mails, and you should be receiving a hundred more every week, mostly from industries across Asia and carriers all over the world.
-
-Your work is to keep track of all service and transport invoices, by storing them in a sheet and also be able to answer any inquiry from management about the cost related details of any product, producer, or carrier.
-
----
-
 # Invoice pipeline
 
-**This project invents that inbox, then reads it back.**
+**First day in Moty's cost department. Nobody kept the invoices.**
 
-One half plays the suppliers. It runs eight weeks of a real importer, one day
-at a time, and posts every invoice that falls out of it to a real mailbox. The
-other half watches that mailbox and turns the PDFs into two CSV files.
+Moty imports cosmetics packaging from Asia: bottles, caps, pumps, labels.
+Since 1 January, factories, shipping lines, forwarders, a customs broker,
+a terminal and a truck company have billed it, *and none of it was filed*.
 
-The two halves never meet. The reader is given a PDF and nothing else: no
-layout file, no list of suppliers, no hint about which way round the dates
-are. That is the only way the score means anything.
+You work in **Production and Logistics Cost Management**. Your job is to
+know **what every part cost to land in Louveira**, by carrier, by
+operation and by product, *and to answer management the day they ask*.
+
+The department does not pay invoices and does not choose what is bought.
+**It only works out what things cost.**
+
+So the first thing you do is **e-mail every sender: send us every document
+issued to Moty since 1 January.** They reply, *each in its own way*, a few
+PDFs per mail.
+
+The scenario, before and after:
+```mermaid
+%%{init: {"flowchart": {"subGraphTitleMargin": {"top": 6, "bottom": 24}, "nodeSpacing": 30, "rankSpacing": 70}}}%%
+flowchart LR
+    subgraph Before["<b>Moty Cost Management</b><br/>BEFORE the planned automation"]
+        B1["<b>Invoices</b><br/>typed into spreadsheets by hand"]
+        B2["<b>Cost known</b><br/>about 6 days after the month ends"]
+        B3["<b>Supplier or carrier errors</b><br/>found by chance, often never"]
+    end
+    subgraph After["<b>Moty Cost Management</b><br/>AFTER the planned automation"]
+        A1["<b>Invoices</b><br/>read, costed and checked on arrival"]
+        A2["<b>Cost known</b><br/>the day the invoice arrives"]
+        A3["<b>Supplier or carrier errors</b><br/>flagged within days, before the close"]
+    end
+    B1 --> A1
+    B2 --> A2
+    B3 --> A3
+
+    classDef before fill:#3b1f24,stroke:#d1495b,color:#f2dede
+    classDef after fill:#16332a,stroke:#2e9e6b,color:#dff2e8
+    class B1,B2,B3 before
+    class A1,A2,A3 after
+    style Before fill:transparent,stroke:#d1495b,stroke-dasharray:4 3
+    style After fill:transparent,stroke:#2e9e6b
+```
+
+Why it matters:
+
+- Closing the books takes a typical company **about 6 days** a month
+  [[1]](#sources).
+- **3 to 6 of every 100** freight invoices have an **error** [[2]](#sources).
+
+The numbers end up in the landed cost dashboard, *where management asks
+in plain words and every figure is computed, never guessed:*
+
+![The landed cost dashboard, fed by this project](docs/dashboard.png)
+
+Its code: [the dashboard repository](https://github.com/RafaelTavares98/accounts-payable-dashboard-with-ai-chat-and-verified-numbers)
 
 ## The shape of it
 
-```mermaid
-flowchart LR
-    A["<b>operation.py</b><br/>eight weeks<br/>of a business"] --> B["<b>render.py</b><br/>102 invoices,<br/>seven page designs"]
-    B --> C["<b>mail_delivery.py</b><br/>SMTP<br/>one issuer per tag"]
-    C --> D(("Gmail"))
-    D --> E["<b>watcher.py</b><br/>IMAP IDLE<br/>waits to be told"]
-    E --> F["<b>reading.py</b><br/>text to fields,<br/>no help given"]
-    F --> G["<b>intake.py</b><br/>invoices.csv<br/>invoice_lines.csv"]
-    A -.->|"the answer key"| H[["<b>ledger.json</b>"]]
-    G -.->|"scored against"| H
+**From the request to the cost report.** *The answer key is written first
+and kept away from the reader.*
 
-    style A fill:#0B2545,color:#fff
-    style H fill:#8a6d1f,color:#fff
-    style G fill:#11502b,color:#fff
+```mermaid
+flowchart TB
+    subgraph SUP["The senders, simulated"]
+        direction LR
+        ASK["<b>1. Moty asks</b><br/>one e-mail per sender:<br/>everything since 1 January<br/><code>request.py</code>"]
+        SIM["<b>2. The year so far</b><br/>orders, shipments, invoices,<br/>1 January to today<br/><code>operation.py</code>"]
+        DRAW["<b>3. Print each document</b><br/>as a PDF, some as scans<br/><code>render.py</code>"]
+        SEND["<b>4. Reply in batches</b><br/>up to 10 PDFs per mail,<br/>each sender its own way<br/><code>replies.py</code>"]
+        ASK --> SIM --> DRAW --> SEND
+    end
+    BOX(("<b>Inbox</b><br/>Gmail"))
+    subgraph RD["The reader, which sees only the PDF"]
+        direction LR
+        WATCH["<b>5. Pick up new mail</b><br/>the moment it lands<br/><code>watcher.py</code>"]
+        READ["<b>6. Read every PDF</b><br/>number, dates, lines, totals<br/><code>fields.py</code>"]
+        SAVE["<b>7. File it</b><br/>new, revised or duplicate<br/><code>intake.py</code>"]
+        WATCH --> READ --> SAVE
+    end
+    CSV[("<b>Two CSV files</b><br/>invoices, invoice lines")]
+    KEY["<b>Answer key</b><br/>what every document really says<br/><code>ledger.json</code>"]
+
+    SUP --> BOX --> RD --> CSV
+    SUP -. "written first" .-> KEY
+    CSV -. "scored against" .-> KEY
+
+    classDef step fill:#14202b,stroke:#4f8fb8,color:#e6edf3
+    classDef truth fill:#3a3012,stroke:#c9a227,color:#f5ecd0
+    classDef result fill:#16332a,stroke:#2e9e6b,color:#dff2e8
+    class ASK,SIM,DRAW,SEND,WATCH,READ,SAVE,BOX step
+    class KEY truth
+    class CSV result
+    style SUP fill:transparent,stroke:#4f8fb8,stroke-dasharray:4 3
+    style RD fill:transparent,stroke:#4f8fb8
 ```
+
+**Nothing is dated after today.** Each later run brings only what was
+issued since the last one.
 
 ## Where an invoice comes from
 
-Nothing is drawn at random. Every document is the consequence of something
-that happened the day before.
+**Every document comes from an event in the business:** an order, a
+shipment, an arrival.
 
 ```mermaid
-flowchart TD
-    PO["Moty raises a purchase order<br/><i>every Monday</i>"]
-    READY["the factory finishes<br/><i>35 to 55 days, plus the slip</i>"]
-    WAIT{"is a second order<br/>ready too?"}
-    HOLD["the box waits<br/><i>up to seven days</i>"]
-    LATE{"would the water<br/>arrive too late?"}
-    SEA["sails<br/><i>30 to 46 days</i>"]
-    AIR["flies<br/><i>3 to 6 days</i>"]
-    ARR["arrives in Santos"]
-    TRUCK["trucked to Louveira"]
+flowchart TB
+    subgraph TRIP["The journey of one order"]
+        direction LR
+        PO["<b>1. Moty orders</b><br/>every Monday"]
+        MAKE["<b>2. Factory makes it</b><br/>35 to 55 days,<br/>sometimes up to 14 late"]
+        PACK["<b>3. Packed in cartons</b><br/>volume and weight<br/>from each carton"]
+        SHIP["<b>4. Ships</b><br/>shared container (LCL) or<br/>full container (FCL), whichever<br/>costs less; by air if late"]
+        ARR["<b>5. Lands in Santos</b><br/>then a truck<br/>to Louveira"]
+        PO --> MAKE --> PACK --> SHIP --> ARR
+    end
 
-    GI["<b>goods invoice</b><br/>from the factory"]
-    FI["<b>freight invoice</b><br/>from the line"]
-    II["<b>freight invoice</b><br/>from the haulier"]
+    subgraph LEFT["Billed when it ships, in US dollars"]
+        direction LR
+        GI["<b>Goods invoice</b><br/>from the factory"]
+        FI["<b>Freight invoice</b><br/>per container, per m³ or per kg"]
+        GI ~~~ FI
+    end
+    subgraph LANDED["Billed when it lands, in reais"]
+        direction LR
+        LC["<b>Local charges</b><br/>terminal handling, B/L release"]
+        ST["<b>Storage</b><br/>bonded terminal"]
+        DS["<b>Duty statement</b><br/>import taxes"]
+        BF["<b>Broker invoice</b><br/>customs clearance fee"]
+        TR["<b>Truck invoice</b><br/>Santos to Louveira"]
+        LC ~~~ ST ~~~ DS ~~~ BF ~~~ TR
+    end
 
-    PO --> READY --> WAIT
-    WAIT -- no --> HOLD --> LATE
-    WAIT -- yes --> LATE
-    LATE -- no --> SEA
-    LATE -- yes --> AIR
-    SEA --> GI
-    SEA --> FI
-    AIR --> GI
-    AIR --> FI
-    SEA --> ARR
-    AIR --> ARR
-    ARR --> TRUCK --> II
+    TRIP --> LEFT
+    TRIP --> LANDED
 
-    style GI fill:#0B2545,color:#fff
-    style FI fill:#0B2545,color:#fff
-    style II fill:#0B2545,color:#fff
+    classDef step fill:#14202b,stroke:#4f8fb8,color:#e6edf3
+    classDef doc fill:#16332a,stroke:#2e9e6b,color:#dff2e8
+    class PO,MAKE,PACK,SHIP,ARR step
+    class GI,FI,LC,ST,DS,BF,TR doc
+    style TRIP fill:transparent,stroke:#4f8fb8
+    style LEFT fill:transparent,stroke:#2e9e6b
+    style LANDED fill:transparent,stroke:#2e9e6b
 ```
 
-A container is paid for whether it is full or not, so a factory holds one
-lonely order for a week hoping for company. That one rule is why a freight
-invoice often covers two purchase orders, and why the cost has to be split.
+- **A small order ships shared (LCL)**, charged per m³ or per tonne,
+  whichever is greater.
+- **A big one fills its own container (FCL)**, one price per box, however
+  full.
+- *Each shipment compares the two, all charges included, and takes the
+  cheaper*, as a forwarder quotes both. With 2026 rates the switch falls
+  near **46 to 60 m³**, so Moty ships mostly LCL.
+- A late order flies 55% of the time if it is small enough, charged per
+  kilo or by volume, whichever is greater.
 
-The two arguments behind that paragraph:
-[a factory waits before shipping](docs/explanation.md#why-a-factory-waits-before-shipping)
-and [freight is split between orders](docs/explanation.md#why-freight-is-split-between-orders).
+## What the reader is up against
 
-## Who bills Moty
+- **A backlog, not a drip.** Months of documents arrive at once, in
+  replies of up to 10 PDFs, each sender batching, grouping and wording
+  them its own way.
+- **Thirteen issuers, each printing its own way.** The same day arrives as
+  `2026-04-11`, `04/11/2026` or `11/04/2026`; amounts as `1,234.56` or
+  `1.234,56`.
+- **Two senders scan.** The Indian label printer sends most of its
+  invoices as cheap black-and-white scans, half of them askew; the broker
+  scans a signed copy now and then. They are read with OCR. If the lines
+  do not add up to the total, *a person gets the row*; the reader never
+  guesses.
+- **Resends, revisions and credit notes**, as in any real inbox.
+- **Ten kinds of error, planted on purpose** for a model to catch later.
+  Each has an *honest twin* that looks the same on the page.
 
-Ten issuers. Moty never issues; it only ever receives. Every one of them bills
-in US dollars and prints its own way, because a reader that assumes one shape
-falls over on the next.
+And once read, **every part is costed in reais**: freight, local charges,
+storage, import duty, broker and truck, each split the way it is charged;
+the recoverable taxes kept apart.
 
-| Code | Issuer | Sells or moves | Page | Dates | Decimals |
-|---|---|---|---|---|---|
-| NCL | Ningbo Caplink Industrial | closures, pumps | closed grid | `2026-04-11` | `1,234.56` |
-| SBP | Shantou Brightpack | cartons, labels | tinted band | `2026-04-11` | `1,234.56` |
-| GZV | Guangzhou Verrelia Glassworks | bottles, jars | boxed form, totals on top | `2026-04-11` | `1,234.56` |
-| HCV | Hanil Cosmetic Vessels | pumps, jars | no rules at all | `04/11/2026` | `1,234.56` |
-| BDT | Binh Duong Tubeworks | tubes, closures | dashed rows | `11/04/2026` | `1,234.56` |
-| ARL | Aravalli Labelworks | labels, cartons | coloured rule | `11/04/2026` | `1.234,56` |
-| DHI | DHI Global Forwarding | air freight | wide ledger | `11/04/2026` | `1,234.56` |
-| MRK | Marsk Line Agencies | ocean freight | wide ledger | `2026-04-11` | `1,234.56` |
-| CSM | COSMO Shipping Lines | ocean freight | closed grid | `2026-04-11` | `1,234.56` |
-| KNG | Keuhne & Nager Logistics | road haulage | coloured rule | `11/04/2026` | `1.234,56` |
+## How well it reads
 
-Two of them write the same day as `04/11/2026` and `11/04/2026`. The reader has
-to work out which is which from the page itself.
+**The reader is scored against the answer key on every run.** The latest
+figures, by scan quality: [the reference](docs/reference.md#what-the-reader-scored).
 
-One page from each is in [the samples folder](samples/README.md). The seven
-designs behind the Page column are in
-[page styles](docs/reference.md#page-styles), and adding an eleventh issuer is
-[a recipe](docs/how-to.md#add-an-eleventh-issuer).
+## Set up
 
-## Five minutes
+You need Python 3.10 or newer.
 
 ```bash
+git clone https://github.com/RafaelTavares98/invoice-pipeline
+cd invoice-pipeline
+python -m venv .venv
+.venv/Scripts/activate        # .venv/bin/activate on Linux and macOS
 pip install -r requirements.txt
-
-python run.py --weeks          # eight weeks of invoices, into out/
-python -m pytest               # 253 tests
-python watch.py --folder inbox # read a folder, no mail server needed
 ```
 
-Open [`out/ledger.json`](docs/reference.md#outledgerjson) to see what the
-answers are supposed to be, and
-[`data/invoices.csv`](docs/reference.md#datainvoicescsv) to see what the
-reader found. Walked through one step at a time:
-[the tutorial](docs/tutorial.md).
+To read scanned invoices, also install Tesseract
+(`winget install UB-Mannheim.TesseractOCR` on Windows,
+`sudo apt-get install tesseract-ocr` on Ubuntu). Without it, scans are
+filed for a person.
 
-Sending real mail needs two environment variables and one password in the
-keychain.
-[The how-to guide](docs/how-to.md#send-the-invoices-as-real-e-mail) covers it.
+Or with Docker, no Python needed:
 
-## One run
-
-| | |
-|---|---|
-| Purchase orders raised | 79 |
-| Shipments that left a port | 44 |
-| Invoices in the window | 102 |
-| Goods invoices | 44 |
-| Freight invoices | 56 |
-| Credit notes | 2 |
-| Resends: same number, same bytes | 9 |
-| Revisions, `-R1` | 4 |
-| Invoices quoting the wrong order | 2 |
-| Chains with a landed cost | 31 |
-| Freight as a share of goods | about 8% |
-
-The defects are deliberate. A clean corpus teaches a reader nothing. The
-reasoning is in
-[why defects are injected on purpose](docs/explanation.md#why-defects-are-injected-on-purpose),
-and the rates are in [defect rates](docs/reference.md#defect-rates).
-
-## What the reader scored
-
-102 invoices arrive. Nine are resends of a document already read, so 93
-distinct documents reach the CSV. Measured against `ledger.json`:
-
-| Field | Correct |
-|---|---|
-| Grand total | 93 / 93 |
-| Issue date | 93 / 93 |
-| Line count | 93 / 93 |
-| Flagged as unreadable | 0 |
-
-It also works out what each document is: 87 new, 3 revisions, and 3 earlier
-invoices marked `superseded` because a revision replaced them.
-
-The fourth revision corrects an invoice issued before the window opened. There
-is nothing on file to supersede, so it is filed as new. That is right: a
-reader cannot replace a document it never received.
-
-It gets there without seeing `issuers.py`. It counts how numbers end to find
-the decimal mark, reads every date on the page to settle the order, and finds
-the table by its heading rather than by guessing which lines hold numbers.
-
-Each of those three is argued separately:
-[the reader is blind](docs/explanation.md#why-the-reader-is-blind),
-[the table is found by its heading](docs/explanation.md#why-the-table-is-found-by-its-heading),
-[the quantity column is counted from the right](docs/explanation.md#why-the-quantity-column-is-counted-from-the-right).
-
-## The files
-
-```
-run.py                  make the invoices
-watch.py                read the mailbox
-
-src/
-  the business
-    buyer.py            Moty, the one being billed
-    issuers.py          the ten who bill
-    catalogue.py        sixteen packaging components
-    lanes.py            which port, which carrier, how many days
-    orders.py           purchase order, shipment, dispatch
-    invoice.py          the invoice and its arithmetic
-
-  making it happen
-    operation.py        the eight week clock
-    pricing.py          where the numbers come from
-    defects.py          duplicates, revisions, credit notes
-    invoice_builder.py  one invoice, outside the simulation
-    ledger.py           the answer key
-
-  drawing the page
-    render.py           invoice to PDF
-    layouts.py          what each issuer's page is made of
-    page_drawing.py     the parts every design shares
-    page_styles.py      the seven designs
-    formatting.py       how each issuer writes a number and a date
-
-  the mailbox
-    mail_delivery.py    sending, with the password in the keychain
-    mail_sources.py     a folder of .eml, or a real IMAP account
-    watcher.py          IMAP IDLE, and the hourly safety net
-
-  reading it back
-    reading.py          text to fields, with no help
-    intake.py           the two CSV files, and never twice
-
-tests/                  253 tests
-samples/                one invoice per issuer, and the answers
+```bash
+docker build -t invoice-pipeline .
+docker run --rm invoice-pipeline
 ```
 
-[The samples folder](samples/README.md) holds a page from each of the ten, so
-the designs can be looked at before anything is installed.
+## Check that it works
 
-## The four documents
+```bash
+python run.py smoke
+```
 
-Read them in this order. The last two are for looking things up, not for
-reading straight through.
+**You should see:**
 
-| # | Document | Read it when |
-|---|---|---|
-| 1 | [Tutorial](docs/tutorial.md) | you have never run this and want one invoice, end to end |
-| 2 | [Explanation](docs/explanation.md) | you want to know why it is built this way |
-| 3 | [Reference](docs/reference.md) | you need a command, a column, or a module |
-| 4 | [How-to guide](docs/how-to.md) | you know it already and need a recipe |
+```text
+smoke: 1 of 1 read correctly; scans 0 of 0; in ...\Invoices\samples\single
+```
 
-Every page carries the other three at the top, and each section links across
-to the matching one: a figure in the reference, the argument behind it in the
-explanation, the way to change it in the how-to guide.
+One reply came back with one invoice, and the reader filed it and checked
+it against its answer, in about a second. Everything it wrote is in
+`Invoices/samples/single/`.
 
-## What this is not
+## Go further
 
-It does not pay anybody, file anything, or talk to an accounting system. It
-makes invoices that look real and reads them back, so that a reader can be
-measured against an answer key instead of against an opinion.
+- **[Tutorial](docs/tutorial.md)**: send the requests, receive the
+  backlog, read it, score the reader and cost every part, step by step.
+- **[Reference](docs/reference.md)**: every command, file, column, charge
+  and rate.
+
+## Sources
+
+1. APQC, "Metric of the Month: Cycle Time for Monthly Close", CFO.com.
+   Median 6.4 calendar days; top quarter 4.8.
+   <https://www.cfo.com/news/metric-of-the-month-cycle-time-for-monthly-close/659297/>
+2. Transportation Insight, "Freight Audit and Payment: Protecting Profit
+   in Soft Rates". A typical audit finds errors on 3 to 6% of invoices.
+   <https://transportationinsight.com/resources/freight-audit-payment-protect-profit-soft-rates/>
+
+The freight rates and charges behind the model are sourced in
+[the reference](docs/reference.md#sources).

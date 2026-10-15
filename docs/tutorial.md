@@ -1,239 +1,174 @@
-# Tutorial: your first invoice, end to end
+# Tutorial
 
-[README](../README.md) · **Tutorial** · [How-to](how-to.md) ·
-[Reference](reference.md) · [Explanation](explanation.md)
+[README](../README.md) · **Tutorial** · [Reference](reference.md)
 
-By the end of this lesson you will have made an invoice, posted it to a
-folder that stands in for a mailbox, read it back, and seen your own answer
-compared with the correct one.
+A **smoke test** checks that one part works at all: one small input, the
+right output. **Run them right after installing**, lowest part first, so
+you know every part works before the whole year. The first one that fails
+names the broken part.
 
-No mail server is involved. Nothing leaves your machine.
+**Before you start:** [Set up](../README.md#set-up). Gmail steps need
+[an account](reference.md#environment). Each step: `python run.py smoke <step>`.
+Everything a smoke test makes is invented and lands in
+`Invoices/samples/<step>/`, apart from the real run in `Invoices/live/`.
 
-Allow fifteen minutes.
+## Part 1: the senders
 
-## Before you start
-
-You need Python 3.10 or newer. Check it:
-
-```bash
-python --version
-```
-
-Move into the project and install what it needs:
+### Step 1: one FCL and one LCL invoice, on Gmail
 
 ```bash
-cd Portfolio/manual/01-invoice-pipeline
-pip install -r requirements.txt
+python run.py smoke freight --send
 ```
 
-Three libraries arrive: `reportlab` draws the PDFs, `pypdf` and `pdfplumber`
-read them back, and `pytest` runs the tests.
+**Proves:** the system runs, end to end, into a real inbox.
 
-## Step 1: prove the project works
+**Check by hand:** in Gmail, one mail with two PDFs that open.
+
+- FCL: containers × rate per container, about US$5,600 to 6,000 per 40'.
+- LCL: rate × the greater of m³ and tonnes, at least 1.
+- Every line adds up to the total.
+
+### Step 2: one mail from each sender, on Gmail
 
 ```bash
-python -m pytest
+python run.py smoke senders --send
 ```
 
-You should see `253 passed`. If anything fails, stop here; the rest of the
-lesson assumes a healthy project.
+**Proves:** the system delivers every flavour: every sender, every kind of
+document, text PDFs and scans, each error and its honest twin.
 
-What the ten test files cover: [tests](reference.md#tests).
+**Check by hand:** in Gmail, fifteen mails, one per sender: the thirteen
+regulars, the vendor with no order, and the new supplier.
 
-## Step 2: make one invoice
+- The body describes the sender, as the project imagines it: what it
+  makes or moves, how and at what prices it sells, what it sends in a
+  year, and how the simulation draws that to stay believable. It ends
+  with a short note that the sender and its documents are invented.
+- Factories: a goods invoice.
+- MRK and CSM: FCL freight, and local charges in reais.
+- DHI: LCL or air freight, and local charges in reais.
+- SCA: a duty statement and a broker invoice.
+- TVA: storage. TLV: truck. KNG: road haulage.
+- Scans are a sender's habit, and the generator makes them: ARL sends a
+  poor black-and-white scan laid up to 15 degrees askew, SCA a good
+  straight one. Nothing on a scan can be selected.
+- Each of the ten errors appears once, beside its honest twin; the answer
+  key names both.
+- Every line adds up; every value is in the reference's range.
+
+### Step 3: one sender forwards ten past PDFs, on Gmail
 
 ```bash
-python run.py
+python run.py smoke forward SCA --send
 ```
 
-The program writes one invoice from each of the ten issuers and prints a line
-for each:
+**Proves:** the system runs loaded, with many documents in one mail.
 
-```
-NCL  factory  USD     31218.00  NCL-2026-7579.pdf
-SBP  factory  USD     22191.38  SBP-2026-1978.pdf
-...
-MRK  carrier  USD      6119.18  MRK-2026-1496.pdf
-```
+**Check by hand:** in Gmail, one mail with exactly ten PDFs, under 25 MB.
 
-Look in the `out/` folder. Open two of the PDFs side by side, one from a
-factory and one from a carrier. Notice that they share no layout: different
-columns, different page orientation, different way of writing the date.
+- SCA, the broker, forwards the closed file of one past shipment: four
+  goods invoices, the FCL freight, the local charges, the duty statement,
+  its own fee, the storage and the truck. Only the broker holds a
+  shipment's whole file, so only it can forward one.
+- Every PDF is dated between 1 January and today.
+- Every PDF opens and every line adds up.
 
-That difference is the point of the whole project. The seven designs are
-named in [page styles](reference.md#page-styles), and the same ten PDFs are
-committed in [the samples folder](../samples/README.md) if you would rather
-not run anything.
+---
 
-## Step 3: look at the answer key
+## Part 2: the reader
 
-Open `out/truth.json`. Find the entry whose `number` matches one of the PDFs
-you just opened:
-
-```json
-{
-  "number": "NCL-2026-7579",
-  "kind": "goods",
-  "issuer": "NCL",
-  "issue_date": "2026-09-30",
-  "grand_total": "31218.00",
-  "line_count": 3
-}
-```
-
-Check the figure against the paper. They agree, because the same program
-wrote both. Later, a different program will have to work the figure out from
-the paper alone. Why that separation matters:
-[the reader is blind](explanation.md#why-the-reader-is-blind).
-
-## Step 4: run eight weeks instead of ten invoices
+### Step 4: read one mail from Gmail
 
 ```bash
-python run.py --weeks
+python run.py smoke read-mail
 ```
 
-This is the interesting mode. Instead of ten invoices drawn from nowhere, it
-runs a business for eight weeks and lets the paperwork happen:
+**Proves:** the reader files both PDFs of step 1.
 
-```
-  79 purchase orders raised
-  44 shipments left a port
- 102 invoices landed in the window
-```
+**Check by hand:** two rows in
+`Invoices/samples/freight/data/invoices.csv`; `first_seen` is when the
+mail arrived. Each reading step scores itself against the answer key in
+`score.json`: right, flagged for a person, wrong, missing. Wrong and
+missing must be empty.
 
-Open `out/ledger.json` and find the `chains` section. One chain looks like
-this:
-
-```json
-{
-  "order_number": "PO-41011",
-  "factory": "HCV",
-  "goods_invoices": ["HCV-2026-3107"],
-  "shipments": ["B/L MRK7000106"],
-  "freight_invoices": ["MRK-2026-3108", "KNG-2026-3209"],
-  "landed_cost": "8601.06"
-}
-```
-
-Read it as a sentence. Moty ordered something from Hanil. Hanil invoiced it.
-Marsk carried it by sea and invoiced that. Keuhne & Nager trucked it from the
-port and invoiced that too. Landing those goods in Louveira cost 8601.06.
-
-That sentence is the question the cost department is actually asked.
-
-Every key in a chain is listed in [a chain](reference.md#a-chain). Why the
-freight is a slice and not the whole invoice:
-[freight is split between orders](explanation.md#why-freight-is-split-between-orders).
-
-## Step 5: post the invoices to a folder mailbox
+### Step 5: read one mail from each sender
 
 ```bash
-python run.py --weeks --post
+python run.py smoke read-senders
 ```
 
-Now look in `inbox/`. Every invoice has become an `.eml` file: a real mail
-message, with a real subject line and the PDF attached.
+**Proves:** the reader files every PDF of step 2.
 
-Open one in a text editor. The subject is not the same for every supplier:
+**Check by hand:** one row per PDF; none missing.
 
-```
-Subject: Invoice NCL-2026-3140 / PO-41021
-Subject: COSMO SHIPPING | INVOICE CSM-2026-3285 | B/L CSM7000282
-Subject: Rechnung / Invoice KNG-2026-3265
-```
+- The scans go through OCR. An askew page is levelled first.
+- A scan whose figures OCR misread, a 9 read as a 3, does not add up:
+  its row says why and goes to a person. It is never filed as right.
 
-Two of them give away the purchase order or the bill of lading in the subject.
-Eight do not. A reader cannot rely on the subject line.
-
-The address every one of them came from is not the name on it; see
-[the name on the envelope](explanation.md#why-the-name-on-the-envelope-is-not-the-address).
-
-## Step 6: read the mailbox back
+### Step 6: read the ten forwarded PDFs
 
 ```bash
-python watch.py --folder inbox
+python run.py smoke read-forward
 ```
 
-The program opens every message, pulls out the PDF, reads the text, and
-writes two files into `data/`:
+**Proves:** the reader files the ten PDFs of step 3.
 
-```
-new         NCL-2026-3140
-new         MRK-2026-3141
-duplicate   NCL-2026-3140
-revised     CSM-2026-3238
-...
-```
+**Check by hand:** ten rows, each matching the answer key.
 
-Three words appear in that output and each means something:
-
-- `new` is a document never seen before.
-- `duplicate` is the same PDF arriving twice. It is counted once.
-- `revised` means an invoice number came back with different figures. The
-  earlier row is marked `superseded` and must not be paid.
-
-All four statuses: [what each status means](reference.md#what-each-status-means).
-Why the bytes decide and not the number:
-[the hash is the identity](explanation.md#why-the-hash-is-the-identity-not-the-invoice-number).
-
-## Step 7: look at what it found
-
-Open `data/invoices.csv`. One row per document:
-
-```
-invoice_number,status,issuer,issue_date,grand_total,order_number,...
-NCL-2026-3140,new,"Ningbo Caplink Industrial Co., Ltd.",2026-04-11,40640.00,PO-41021,...
-```
-
-Open `data/invoice_lines.csv`. One row per line item:
-
-```
-invoice_number,row,description,quantity,unit_price,net
-NCL-2026-3140,1,"Lotion pump, 24/410, 1.2 cc, silver collar",100000,0.212,21200.00
-```
-
-Nothing in `reading.py` was told that Ningbo Caplink exists, or that it writes
-dates as `2026-04-11`. It worked both out from the page.
-
-Every column of both files:
-[`data/invoices.csv`](reference.md#datainvoicescsv) and
-[`data/invoice_lines.csv`](reference.md#datainvoice_linescsv).
-
-## Step 8: score yourself
-
-Compare what the reader found with what the generator knows:
+### Step 7: cost one shipment
 
 ```bash
-python -c "
-import csv, json
-from decimal import Decimal
-rows = list(csv.DictReader(open('data/invoices.csv', encoding='utf-8')))
-truth = {}
-for t in json.load(open('out/ledger.json', encoding='utf-8'))['invoices']:
-    truth.setdefault(t['number'], []).append(t)
-hit = sum(1 for r in rows
-          if r['grand_total'] in [t['grand_total'] for t in truth.get(r['invoice_number'], [])])
-print(f'{hit} of {len(rows)} totals correct')
-"
+python run.py smoke cost
 ```
 
-You should see every total matching.
+**Proves:** the documents of step 6 become the landed cost of each part.
 
-## What you have learned
+**Check by hand:** in `Invoices/samples/cost/`, freight, local charges
+and truck split by volume, storage by value, duty by tariff code; the
+parts add up to the total the documents bill.
 
-- The generator and the reader are separate programs, and the reader is blind
-  to the generator.
-- An invoice is the consequence of an order and a shipment, not an isolated
-  document.
-- The same PDF arriving twice is a duplicate; the same number with new figures
-  is a revision. They are not the same problem.
-- The answer key is what makes the score honest.
+---
 
-## Where to go next
+## Part 3: the whole year, live
 
-- [How-to guide](how-to.md) for sending real mail and changing the simulation.
-  Start with [send the invoices as real e-mail](how-to.md#send-the-invoices-as-real-e-mail).
-- [Explanation](explanation.md) for why it is built this way. Start with
-  [why the reader is blind](explanation.md#why-the-reader-is-blind).
-- [Reference](reference.md) when you need a command, a column or a module.
-- [README](../README.md) for the diagrams and the whole picture.
+When every step above passes, start the dashboard, then the run. The
+dashboard runs in Docker inside WSL, from the WSL copy of the repo, and
+reaches the Python on Windows through its address:
+
+```bash
+cd monitoring && PIPELINE_HOST=$(ip route | awk '/default/ {print $3}') docker compose up -d prometheus grafana
+```
+
+```bash
+python run.py request --send
+```
+
+```bash
+python run.py backlog --send --metrics
+```
+
+```bash
+python watch.py --metrics 9108
+```
+
+**Proves:** the whole period, 1 January to today, mailed the way each
+sender answers and read back as it lands.
+
+A free Gmail account sends about 500 mails a day. If the send stops at
+the limit, it says how many are left; the same `backlog` command carries
+on later, or from a second account ([how](reference.md#environment)).
+
+**Check by hand:** at `http://localhost:3000`, the real-run panels: replies
+sent, PDFs mailed, PDFs filed, left for a person. Then:
+
+```bash
+python run.py score
+```
+
+- Every document of `Invoices/live/ledger.json` is filed once; none is
+  missing, none is wrong in silence. The rest are right or flagged.
+- `python run.py cost` writes the cost report into `Invoices/live/cost/`.
+
+Then run `python run.py live --send` each day: it brings only what was
+issued since the last run, one mail each. Every command, file and rate:
+[the reference](reference.md).

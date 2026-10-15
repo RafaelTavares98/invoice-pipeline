@@ -1,8 +1,0 @@
-# Text is stored with one kind of line ending, whatever the machine does
-# locally. Without this, a checkout on Windows and a checkout on Linux
-# disagree about every line of every file.
-* text=auto eol=lf
-
-# PDFs are not text. Line ending conversion would corrupt them, and a diff
-# of one is noise.
-*.pdf binary

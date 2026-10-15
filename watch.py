@@ -2,50 +2,61 @@
 
     python watch.py                 wait for the next invoice, forever
     python watch.py --once          take whatever is already there, then stop
-    python watch.py --folder inbox  read a folder of .eml files instead
+    python watch.py --folder DIR    read a folder of .eml files instead
+    python watch.py --metrics PORT  also serve the counts on /metrics
+
+What it files goes into Invoices/live/data/. The smoke tests' mail in the
+same mailbox is left to the smoke steps.
 """
 
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent / 'src'))
 
-import intake                       # noqa: E402
-import mail_sources                 # noqa: E402
+from reading import intake                       # noqa: E402
+from mail import sources                         # noqa: E402
 
-DATA = Path(__file__).parent / 'data'
-
-
-def report(arrival, outcome):
-    note = f'  {outcome.problems[0]}' if outcome.problems else ''
-    print(f'{outcome.status:<11} {outcome.invoice_number or arrival.filename}'
-          f'{note}', flush=True)
+DATA = Path(__file__).parent / 'Invoices' / 'live' / 'data'
 
 
-def from_folder(store, folder):
-    """No server. Every .eml in a folder, which is how the tests run."""
-    for message in mail_sources.LocalMailbox(folder).messages():
-        for name, payload in message.attachments:
-            outcome = store.take(payload, name,
-                                 message.received_at.isoformat())
-            print(f'{outcome.status:<11} {outcome.invoice_number or name}')
-    store.save()
+def _value_after(flag):
+    if flag not in sys.argv:
+        return None
+    return sys.argv[sys.argv.index(flag) + 1]
 
 
 def main():
-    flags = set(sys.argv[1:])
     store = intake.Store(DATA)
+    watch = None
+    port = _value_after('--metrics')
+    if port:
+        from prometheus_client import REGISTRY, start_http_server
+        from monitoring import metrics
+        start_http_server(int(port))
+        watch = metrics.Pipeline(REGISTRY)
+        watch.stored.set(len(store.invoices))
 
-    if '--folder' in flags or any(a == '--folder' for a in sys.argv):
-        where = sys.argv[sys.argv.index('--folder') + 1]
-        from_folder(store, Path(where))
-    elif '--once' in flags:
-        import watcher
+    def report(arrival, outcome):
+        if watch is not None:
+            from monitoring import metrics
+            metrics.filed(watch, store, outcome)
+        note = f'  {outcome.problems[0]}' if outcome.problems else ''
+        print(f'{outcome.status:<11} {outcome.invoice_number or arrival.filename}'
+              f'{note}', flush=True)
+
+    folder = _value_after('--folder')
+    if folder:
+        for message in sources.LocalMailbox(folder).messages():
+            for name, outcome in intake.replay(store, message):
+                print(f'{outcome.status:<11} {outcome.invoice_number or name}')
+        store.save()
+    elif '--once' in sys.argv:
+        from mail import watcher
         with watcher._connected() as server:
             watcher._drain(server, store, report)
     else:
-        import watcher
+        from mail import watcher
         print('Waiting. The server will push when an invoice lands.\n')
         watcher.watch(store, on_arrival=report)
 
