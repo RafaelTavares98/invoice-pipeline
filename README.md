@@ -3,11 +3,13 @@
 **First day in Moty's cost department. Nobody kept the invoices.**
 
 Moty imports cosmetics packaging from Asia: bottles, caps, pumps, labels.
+Its plant is in Louveira, a real city in São Paulo state; Moty itself is
+invented.
 Since 1 January, factories, shipping lines, forwarders, a customs broker,
 a terminal and a truck company have billed it, *and none of it was filed*.
 
 You work in **Production and Logistics Cost Management**. Your job is to
-know **what every part cost to land in Louveira**, by carrier, by
+know **what every part cost to land at the plant in Louveira**, by carrier, by
 operation and by product, *and to answer management the day they ask*.
 
 The department does not pay invoices and does not choose what is bought.
@@ -55,6 +57,14 @@ in plain words and every figure is computed, never guessed:*
 ![The landed cost dashboard, fed by this project](docs/dashboard.png)
 
 Its code: [the dashboard repository](https://github.com/RafaelTavares98/accounts-payable-dashboard-with-ai-chat-and-verified-numbers)
+
+While the pipeline runs, six panels watch it, one per stage a document
+travels through:
+
+![Six panels watching the pipeline: invoices written, mail sent, mail received, PDFs read off their text, scanned PDFs read by OCR, rows landing in the tables](docs/monitoring.png)
+
+To bring it up: `cd monitoring && docker compose up -d`, then open
+`http://localhost:3000`.
 
 ## The shape of it
 
@@ -112,7 +122,7 @@ flowchart TB
         MAKE["<b>2. Factory makes it</b><br/>35 to 55 days,<br/>sometimes up to 14 late"]
         PACK["<b>3. Packed in cartons</b><br/>volume and weight<br/>from each carton"]
         SHIP["<b>4. Ships</b><br/>shared container (LCL) or<br/>full container (FCL), whichever<br/>costs less; by air if late"]
-        ARR["<b>5. Lands in Santos</b><br/>then a truck<br/>to Louveira"]
+        ARR["<b>5. Lands in Santos</b><br/>then a truck<br/>to the Louveira plant"]
         PO --> MAKE --> PACK --> SHIP --> ARR
     end
 
@@ -128,7 +138,7 @@ flowchart TB
         ST["<b>Storage</b><br/>bonded terminal"]
         DS["<b>Duty statement</b><br/>import taxes"]
         BF["<b>Broker invoice</b><br/>customs clearance fee"]
-        TR["<b>Truck invoice</b><br/>Santos to Louveira"]
+        TR["<b>Truck invoice</b><br/>Santos to the plant"]
         LC ~~~ ST ~~~ DS ~~~ BF ~~~ TR
     end
 
