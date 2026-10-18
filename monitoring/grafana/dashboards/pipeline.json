@@ -1,1301 +1,234 @@
 {
-  "uid": "invoice-pipeline",
+  "uid": "pipeline",
   "title": "Invoice pipeline",
-  "tags": [
-    "invoices"
-  ],
+  "description": "Six panels, in the order a document travels: written, posted, received, read off its text, read off a scan, filed.",
   "timezone": "browser",
-  "refresh": "15s",
-  "time": {
-    "from": "now-1h",
-    "to": "now"
-  },
   "schemaVersion": 39,
+  "refresh": "15s",
+  "time": {"from": "now-30m", "to": "now"},
+  "editable": true,
+  "graphTooltip": 1,
+  "templating": {"list": []},
+  "annotations": {"list": []},
   "panels": [
+
     {
       "id": 1,
-      "type": "stat",
-      "title": "Last tick",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 0,
-        "w": 6,
-        "h": 4
-      },
+      "type": "timeseries",
+      "title": "1. Invoices written, by kind",
+      "description": "Every page the simulation draws, split by what it is: goods, freight, credit, customs, broker, storage, local.",
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
       "targets": [
-        {
-          "refId": "A",
-          "expr": "last_tick_success{job=\"invoice-pipeline\"}",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
+        {"refId": "A", "legendFormat": "{{kind}}",
+         "expr": "sum by (kind) (increase(documents_by_kind_total[5m]))"}
       ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value"
-      },
       "fieldConfig": {
         "defaults": {
-          "mappings": [
-            {
-              "type": "value",
-              "options": {
-                "1": {
-                  "text": "OK",
-                  "color": "green"
-                },
-                "0": {
-                  "text": "FAILED",
-                  "color": "red"
-                }
-              }
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ]
+          "unit": "short", "min": 0,
+          "custom": {
+            "drawStyle": "bars", "lineWidth": 1, "fillOpacity": 75,
+            "stacking": {"mode": "normal", "group": "A"},
+            "showPoints": "never", "axisBorderShow": false
           }
         },
         "overrides": []
+      },
+      "options": {
+        "legend": {"displayMode": "list", "placement": "bottom", "showLegend": true, "calcs": []},
+        "tooltip": {"mode": "multi", "sort": "desc"}
       }
     },
+
     {
       "id": 2,
-      "type": "stat",
-      "title": "Business day reached",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 6,
-        "y": 0,
-        "w": 6,
-        "h": 4
-      },
+      "type": "timeseries",
+      "title": "2. Mail sent",
+      "description": "Invoices put into the mailbox, and how long the posting step takes.",
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
       "targets": [
-        {
-          "refId": "A",
-          "expr": "simulated_day_timestamp_seconds{job=\"invoice-pipeline\"} * 1000",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
+        {"refId": "A", "legendFormat": "posted per minute",
+         "expr": "sum(rate(invoices_total{stage=\"mailed\"}[5m])) * 60"},
+        {"refId": "B", "legendFormat": "seconds per batch, 95th",
+         "expr": "histogram_quantile(0.95, sum by (le) (rate(stage_seconds_bucket{stage=\"mail\"}[5m])))"}
       ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value"
-      },
       "fieldConfig": {
         "defaults": {
-          "unit": "time:YYYY-MM-DD",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              }
-            ]
+          "unit": "short", "min": 0,
+          "custom": {
+            "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10,
+            "showPoints": "never", "spanNulls": true,
+            "gradientMode": "opacity", "axisBorderShow": false
           }
         },
-        "overrides": []
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "posted per minute"},
+           "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#5FC4EE"}}]},
+          {"matcher": {"id": "byName", "options": "seconds per batch, 95th"},
+           "properties": [
+             {"id": "color", "value": {"mode": "fixed", "fixedColor": "#C9A227"}},
+             {"id": "custom.fillOpacity", "value": 0}
+           ]}
+        ]
+      },
+      "options": {
+        "legend": {"displayMode": "list", "placement": "bottom", "showLegend": true, "calcs": []},
+        "tooltip": {"mode": "multi", "sort": "desc"}
       }
     },
+
     {
       "id": 3,
-      "type": "stat",
-      "title": "Read accuracy, last tick",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 12,
-        "y": 0,
-        "w": 6,
-        "h": 4
-      },
+      "type": "timeseries",
+      "title": "3. Mail received",
+      "description": "Messages opened, and the backlog of messages posted but not yet opened.",
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 9},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
       "targets": [
-        {
-          "refId": "A",
-          "expr": "read_accuracy_ratio{job=\"invoice-pipeline\"}",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
+        {"refId": "A", "legendFormat": "opened per minute",
+         "expr": "sum(rate(invoices_total{stage=\"read\"}[5m])) * 60"},
+        {"refId": "B", "legendFormat": "waiting in the mailbox",
+         "expr": "sum(invoices_total{stage=\"mailed\"}) - sum(invoices_total{stage=\"read\"})"}
       ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value"
-      },
       "fieldConfig": {
         "defaults": {
-          "unit": "percentunit",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 0.95
-              },
-              {
-                "color": "green",
-                "value": 0.99
-              }
-            ]
+          "unit": "short", "min": 0,
+          "custom": {
+            "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10,
+            "showPoints": "never", "spanNulls": true,
+            "gradientMode": "opacity", "axisBorderShow": false
           }
         },
-        "overrides": []
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "opened per minute"},
+           "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#2E9E6B"}}]},
+          {"matcher": {"id": "byName", "options": "waiting in the mailbox"},
+           "properties": [
+             {"id": "color", "value": {"mode": "fixed", "fixedColor": "#D1495B"}},
+             {"id": "custom.fillOpacity", "value": 0}
+           ]}
+        ]
+      },
+      "options": {
+        "legend": {"displayMode": "list", "placement": "bottom", "showLegend": true, "calcs": []},
+        "tooltip": {"mode": "multi", "sort": "desc"}
       }
     },
+
     {
       "id": 4,
-      "type": "stat",
-      "title": "Documents stored",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 18,
-        "y": 0,
-        "w": 6,
-        "h": 4
-      },
+      "type": "timeseries",
+      "title": "4. PDFs read off their own text",
+      "description": "Pages that carried a text layer, so nothing had to be guessed, and the seconds the read step spent.",
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 9},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
       "targets": [
-        {
-          "refId": "A",
-          "expr": "max(stored_documents{job=~\"invoice-pipeline|invoice-reader\"})",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
+        {"refId": "A", "legendFormat": "read from text, per 5 min",
+         "expr": "sum(increase(documents_read_total{method=\"text\"}[5m]))"},
+        {"refId": "B", "legendFormat": "seconds to read, 95th",
+         "expr": "histogram_quantile(0.95, sum by (le) (rate(stage_seconds_bucket{stage=\"read\"}[5m])))"}
       ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value"
-      },
       "fieldConfig": {
         "defaults": {
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              }
-            ]
+          "unit": "short", "min": 0,
+          "custom": {
+            "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10,
+            "showPoints": "never", "spanNulls": true,
+            "gradientMode": "opacity", "axisBorderShow": false
           }
         },
-        "overrides": []
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "read from text, per 5 min"},
+           "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#5FC4EE"}}]},
+          {"matcher": {"id": "byName", "options": "seconds to read, 95th"},
+           "properties": [
+             {"id": "color", "value": {"mode": "fixed", "fixedColor": "#C9A227"}},
+             {"id": "custom.fillOpacity", "value": 0}
+           ]}
+        ]
+      },
+      "options": {
+        "legend": {"displayMode": "list", "placement": "bottom", "showLegend": true, "calcs": []},
+        "tooltip": {"mode": "multi", "sort": "desc"}
       }
     },
+
     {
       "id": 5,
       "type": "timeseries",
-      "title": "Invoices per minute, by stage",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 4,
-        "w": 12,
-        "h": 8
-      },
+      "title": "5. Scanned PDFs, read by OCR",
+      "description": "Pages with no text layer, and how many readings a person still has to check.",
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 18},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
       "targets": [
-        {
-          "refId": "A",
-          "expr": "sum by (stage) (rate(invoices_total[5m])) * 60",
-          "legendFormat": "{{stage}}",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
+        {"refId": "A", "legendFormat": "read by OCR, per 5 min",
+         "expr": "sum(increase(documents_read_total{method=\"ocr\"}[5m]))"},
+        {"refId": "B", "legendFormat": "left for a person",
+         "expr": "sum(increase(documents_flagged_total[5m]))"}
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
+          "unit": "short", "min": 0,
           "custom": {
-            "lineWidth": 2,
-            "fillOpacity": 10
+            "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10,
+            "showPoints": "never", "spanNulls": true,
+            "gradientMode": "opacity", "axisBorderShow": false
           }
         },
-        "overrides": []
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "read by OCR, per 5 min"},
+           "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#C9A227"}}]},
+          {"matcher": {"id": "byName", "options": "left for a person"},
+           "properties": [
+             {"id": "color", "value": {"mode": "fixed", "fixedColor": "#D1495B"}},
+             {"id": "custom.fillOpacity", "value": 0}
+           ]}
+        ]
       },
       "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        }
+        "legend": {"displayMode": "list", "placement": "bottom", "showLegend": true, "calcs": []},
+        "tooltip": {"mode": "multi", "sort": "desc"}
       }
     },
+
     {
       "id": 6,
       "type": "timeseries",
-      "title": "Stage time per tick, and reading per invoice",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 12,
-        "y": 4,
-        "w": 12,
-        "h": 8
-      },
+      "title": "6. Rows landing in the tables",
+      "description": "What the reader filed, by status, against the running count of rows on file.",
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 18},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
       "targets": [
-        {
-          "refId": "A",
-          "expr": "histogram_quantile(0.95, sum by (le, stage) (rate(stage_seconds_bucket[5m])))",
-          "legendFormat": "{{stage}}",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        },
-        {
-          "refId": "B",
-          "expr": "sum(rate(stage_seconds_sum{stage=\"read\"}[5m])) / sum(rate(invoices_total{stage=\"read\"}[5m]))",
-          "legendFormat": "read, per invoice",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
+        {"refId": "A", "legendFormat": "{{status}}",
+         "expr": "sum by (status) (increase(documents_by_status_total[5m]))"},
+        {"refId": "B", "legendFormat": "documents on file",
+         "expr": "max(stored_documents{job=~\"invoice-pipeline|invoice-reader\"})"}
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "s",
+          "unit": "short", "min": 0,
           "custom": {
-            "lineWidth": 2,
-            "fillOpacity": 10
+            "drawStyle": "bars", "lineWidth": 1, "fillOpacity": 75,
+            "stacking": {"mode": "normal", "group": "A"},
+            "showPoints": "never", "axisBorderShow": false
           }
         },
-        "overrides": []
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "documents on file"},
+           "properties": [
+             {"id": "custom.drawStyle", "value": "line"},
+             {"id": "custom.lineWidth", "value": 2},
+             {"id": "custom.fillOpacity", "value": 0},
+             {"id": "custom.stacking", "value": {"mode": "none"}},
+             {"id": "custom.axisPlacement", "value": "hidden"},
+             {"id": "color", "value": {"mode": "fixed", "fixedColor": "#8E8E93"}}
+           ]}
+        ]
       },
       "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        }
-      }
-    },
-    {
-      "id": 7,
-      "type": "timeseries",
-      "title": "What the reader filed, per hour",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 12,
-        "w": 12,
-        "h": 8
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum by (status) (increase(documents_by_status_total[1h]))",
-          "legendFormat": "{{status}}",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": {
-            "lineWidth": 2,
-            "fillOpacity": 10
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        }
-      }
-    },
-    {
-      "id": 8,
-      "type": "timeseries",
-      "title": "Failed ticks",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 12,
-        "y": 12,
-        "w": 12,
-        "h": 8
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "increase(tick_failures_total{job=\"invoice-pipeline\"}[1h])",
-          "legendFormat": "failures per hour",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": {
-            "lineWidth": 2,
-            "fillOpacity": 10
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        }
-      }
-    },
-    {
-      "id": 9,
-      "type": "timeseries",
-      "title": "How documents were read, per hour",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 20,
-        "w": 12,
-        "h": 8
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum by (method) (increase(documents_read_total[1h]))",
-          "legendFormat": "{{method}}",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": {
-            "lineWidth": 2,
-            "fillOpacity": 10
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        }
-      }
-    },
-    {
-      "id": 10,
-      "type": "timeseries",
-      "title": "Left for a person to check, per hour",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 12,
-        "y": 20,
-        "w": 12,
-        "h": 8
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "increase(documents_flagged_total[1h])",
-          "legendFormat": "flagged",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": {
-            "lineWidth": 2,
-            "fillOpacity": 10
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        }
-      }
-    },
-    {
-      "id": 11,
-      "type": "stat",
-      "title": "Analysed the day they arrived",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 28,
-        "w": 6,
-        "h": 4
-      },
-      "targets": [
-        {
-          "expr": "max(analysed_same_day_ratio{job=~\"invoice-pipeline|invoice-reader\"})",
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
-      ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percentunit",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 0.95
-              },
-              {
-                "color": "green",
-                "value": 0.99
-              }
-            ]
-          }
-        },
-        "overrides": []
-      }
-    },
-    {
-      "id": 12,
-      "type": "stat",
-      "title": "Our errors: left for a person",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 6,
-        "y": 28,
-        "w": 6,
-        "h": 4
-      },
-      "targets": [
-        {
-          "expr": "max(our_error_ratio{job=~\"invoice-pipeline|invoice-reader\"})",
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
-      ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percentunit",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 0.95
-              },
-              {
-                "color": "green",
-                "value": 0.99
-              }
-            ]
-          }
-        },
-        "overrides": []
-      }
-    },
-    {
-      "id": 13,
-      "type": "stat",
-      "title": "Landed cost, final, BRL",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 12,
-        "y": 28,
-        "w": 6,
-        "h": 4
-      },
-      "targets": [
-        {
-          "expr": "landed_cost_brl{status=\"final\"}",
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
-      ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "currencyBRL",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 0.95
-              },
-              {
-                "color": "green",
-                "value": 0.99
-              }
-            ]
-          }
-        },
-        "overrides": []
-      }
-    },
-    {
-      "id": 14,
-      "type": "stat",
-      "title": "Landed cost, provisional, BRL",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 18,
-        "y": 28,
-        "w": 6,
-        "h": 4
-      },
-      "targets": [
-        {
-          "expr": "landed_cost_brl{status=\"provisional\"}",
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
-      ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "currencyBRL",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 0.95
-              },
-              {
-                "color": "green",
-                "value": 0.99
-              }
-            ]
-          }
-        },
-        "overrides": []
-      }
-    },
-    {
-      "id": 15,
-      "type": "timeseries",
-      "title": "New documents per hour, by kind",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 32,
-        "w": 12,
-        "h": 8
-      },
-      "targets": [
-        {
-          "expr": "sum by (kind) (increase(documents_by_kind_total[1h]))",
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "legendFormat": "{{kind}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": {
-            "lineWidth": 2,
-            "fillOpacity": 10
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        }
-      }
-    },
-    {
-      "id": 16,
-      "type": "timeseries",
-      "title": "From arrival to registration, 95th percentile",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 12,
-        "y": 32,
-        "w": 12,
-        "h": 8
-      },
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(registration_delay_seconds_bucket[5m])))",
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "legendFormat": "p95"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "s",
-          "custom": {
-            "lineWidth": 2,
-            "fillOpacity": 10
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        }
-      }
-    },
-    {
-      "id": 17,
-      "type": "stat",
-      "title": "Anomalies: champion average precision",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 40,
-        "w": 6,
-        "h": 4
-      },
-      "targets": [
-        {
-          "expr": "anomaly_champion_average_precision",
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
-      ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percentunit",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 0.95
-              },
-              {
-                "color": "green",
-                "value": 0.99
-              }
-            ]
-          }
-        },
-        "overrides": []
-      }
-    },
-    {
-      "id": 18,
-      "type": "stat",
-      "title": "Anomalies: money on flagged invoices",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 6,
-        "y": 40,
-        "w": 6,
-        "h": 4
-      },
-      "targets": [
-        {
-          "expr": "anomaly_flagged_amount",
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
-      ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 0.95
-              },
-              {
-                "color": "green",
-                "value": 0.99
-              }
-            ]
-          }
-        },
-        "overrides": []
-      }
-    },
-    {
-      "id": 19,
-      "type": "timeseries",
-      "title": "Anomalies: flags by stage",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 44,
-        "w": 12,
-        "h": 8
-      },
-      "targets": [
-        {
-          "expr": "sum by (stage) (anomaly_flags)",
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "legendFormat": "{{stage}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": {
-            "lineWidth": 2,
-            "fillOpacity": 10
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        }
-      }
-    },
-    {
-      "id": 20,
-      "type": "timeseries",
-      "title": "Anomalies: what the analyst decided",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 12,
-        "y": 44,
-        "w": 12,
-        "h": 8
-      },
-      "targets": [
-        {
-          "expr": "sum by (decision) (anomaly_decisions)",
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "legendFormat": "{{decision}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": {
-            "lineWidth": 2,
-            "fillOpacity": 10
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        }
-      }
-    },
-    {
-      "id": 21,
-      "type": "stat",
-      "title": "Real run: replies sent",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 52,
-        "w": 6,
-        "h": 4
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum(mails_sent_total)",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "legendFormat": ""
-        }
-      ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      }
-    },
-    {
-      "id": 22,
-      "type": "stat",
-      "title": "Real run: PDFs mailed",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 6,
-        "y": 52,
-        "w": 6,
-        "h": 4
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum(invoices_total{stage=\"mailed\"})",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "legendFormat": ""
-        }
-      ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      }
-    },
-    {
-      "id": 23,
-      "type": "stat",
-      "title": "Real run: PDFs filed",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 12,
-        "y": 52,
-        "w": 6,
-        "h": 4
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum(invoices_total{stage=\"read\"})",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "legendFormat": ""
-        }
-      ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      }
-    },
-    {
-      "id": 24,
-      "type": "stat",
-      "title": "Real run: left for a person",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 18,
-        "y": 52,
-        "w": 6,
-        "h": 4
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum(documents_flagged_total)",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "legendFormat": ""
-        }
-      ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      }
-    },
-    {
-      "id": 25,
-      "type": "timeseries",
-      "title": "Real run: replies sent per minute, by sender",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 56,
-        "w": 12,
-        "h": 8
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum by (sender) (rate(mails_sent_total[5m])) * 60",
-          "legendFormat": "{{sender}}",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": {
-            "lineWidth": 2,
-            "fillOpacity": 10
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        }
-      }
-    },
-    {
-      "id": 26,
-      "type": "timeseries",
-      "title": "Real run: PDFs mailed and filed per minute",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 12,
-        "y": 56,
-        "w": 12,
-        "h": 8
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum by (stage) (rate(invoices_total{stage=~\"mailed|read\"}[5m])) * 60",
-          "legendFormat": "{{stage}}",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": {
-            "lineWidth": 2,
-            "fillOpacity": 10
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        }
+        "legend": {"displayMode": "list", "placement": "bottom", "showLegend": true, "calcs": []},
+        "tooltip": {"mode": "multi", "sort": "desc"}
       }
     }
   ]
