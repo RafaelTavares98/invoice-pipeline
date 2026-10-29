@@ -1,5 +1,8 @@
 """Moty, the company being billed. It never issues, it only receives.
 
+Its plant is in São Paulo state: the highway is real;
+Moty, its warehouse, its CNPJ and its e-mail are invented.
+
 The department named on every page turns these documents into cost
 reports. It does not pay them; finance does.
 """
@@ -22,7 +25,7 @@ MOTY = Buyer(
     department='Production and Logistics Cost Management',
     address=(
         'Rodovia Anhanguera, km 94, Galpao 3',
-        'Louveira, SP 13290-000',
+        'Jundiai, SP 13200-000',
         'Brazil',
     ),
     tax_label='CNPJ',
@@ -34,6 +37,6 @@ SHIP_TO = (
     'Moty Cosmeticos Ltda.',
     'Inbound Dock 2',
     'Rodovia Anhanguera, km 94',
-    'Louveira, SP 13290-000',
+    'Jundiai, SP 13200-000',
     'Brazil',
 )

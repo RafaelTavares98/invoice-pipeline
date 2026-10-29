@@ -1,6 +1,6 @@
 """The Brazilian side of an import, checked by hand.
 
-A landed cost in Louveira without the import duties, the broker and the
+A landed cost at the Moty plant without the import duties, the broker and the
 truck is not believable. These tests recompute a declaration from its own
 inputs and the published rates, and hold the quiet run unchanged.
 """

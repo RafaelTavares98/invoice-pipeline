@@ -1,4 +1,4 @@
-"""How goods get from each factory to Louveira.
+"""How goods get from each factory to the Moty plant.
 
 A lane is a factory's port, the carriers that serve it, and how long the
 water takes. Nothing picks a route at random: a Vietnamese factory sails
@@ -8,7 +8,8 @@ from Cat Lai, not from Ningbo.
 from dataclasses import dataclass
 
 DESTINATION = 'Santos'
-INLAND = 'Louveira'
+#: Where Moty's plant is, the end of every shipment.
+INLAND = 'Moty plant'
 
 
 @dataclass(frozen=True)

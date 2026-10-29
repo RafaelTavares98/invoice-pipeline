@@ -206,7 +206,7 @@ def _carriers(rng, number):
     haul = Invoice(number=number(by('KNG'), DAY), issue_date=DAY,
                    due_date=DAY + timedelta(days=21), issuer_code='KNG',
                    kind='freight', reference='B/L MRK26050401',
-                   lines=[Line(description='Road haulage Santos to Louveira, 40GP',
+                   lines=[Line(description='Road haulage Santos to Moty plant, 40GP',
                                quantity=Decimal(1), unit_price=Decimal('1420.00'),
                                unit='trip'),
                           _service('Port storage', Decimal('310.00'))])
@@ -264,7 +264,7 @@ def _brazil(rng, number, goods):
     amended.lookalike_of = 'broker_fee_over'
 
     cargo_brl = goods.grand_total * FX
-    box = {'origin': 'Santos', 'destination': 'Louveira', 'container': '40GP',
+    box = {'origin': 'Santos', 'destination': 'Moty plant', 'container': '40GP',
            'weight_kg': str(FCL_CARGO[1]), 'volume_m3': str(FCL_CARGO[0]),
            'vessel': 'Truck'}
     truck = customs.trucker_invoice(rng, ship, DAY, cargo_brl,
@@ -275,7 +275,7 @@ def _brazil(rng, number, goods):
         ('SCA', honest, 'a duty statement under a published rate cut'),
         ('SCA', fee_over, 'a broker fee above its contract'),
         ('SCA', amended, 'a broker fee the amended contract allows'),
-        ('TLV', truck, 'the truck from Santos to Louveira'),
+        ('TLV', truck, 'the truck from Santos to the Moty plant'),
         ('TVA', charges.storage_invoice(DAY, cif, containers=['40GP'],
                                         number=number(issuers.TERMINAL, DAY)),
          'FCL storage, first week'),
@@ -411,7 +411,7 @@ def _dossier(rng, number):
                     container=' + '.join(boxes), weight_kg=kg, volume_m3=m3)
     cif = ((sum((g.grand_total for g in goods), Decimal(0)) + sea.grand_total)
            * LANDED_FX)
-    box = {'origin': 'Santos', 'destination': 'Louveira',
+    box = {'origin': 'Santos', 'destination': 'Moty plant',
            'container': ship.container, 'weight_kg': str(kg),
            'volume_m3': str(m3), 'vessel': 'Truck'}
     return [(invoice, 'goods invoice') for invoice in goods] + [
@@ -428,7 +428,7 @@ def _dossier(rng, number):
                                  shipment_id=booking), 'terminal storage'),
         (customs.trucker_invoice(rng, ship, LANDED, cif,
                                  number(by('TLV'), LANDED), box),
-         'truck to Louveira'),
+         'truck to the Moty plant'),
     ]
 
 
@@ -457,7 +457,7 @@ def forward(base, sender='SCA', send=False):
                                      encoding='utf-8')
     forwarder = issuers.by_code(sender)
     body = (f'Forwarding the closed file of {documents[0][0].shipment_id}, '
-            f'Ningbo to Louveira, landed {LANDED:%d %B %Y}.\n\n'
+            f'Ningbo to Moty plant, landed {LANDED:%d %B %Y}.\n\n'
             + '\n'.join(listed)
             + '\n\nInvented by the invoice pipeline smoke test. Not real data.\n')
     _post(home, [('forward', forwarder.name, sender.lower(), FORWARD_SUBJECT,

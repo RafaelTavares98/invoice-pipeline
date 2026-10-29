@@ -169,9 +169,9 @@ def _rate_card():
                    f['amount']) for f in lookalikes.FIXED_FEES]
     trucker = issuers.TRUCKER
     rows += [_rate('freight', trucker.code, 'FCL', 'container',
-                   'Road haulage Santos to Louveira', f'{customs.TRUCK_PER_TRIP:.2f}'),
+                   'Road haulage Santos to Moty plant', f'{customs.TRUCK_PER_TRIP:.2f}'),
              _rate('freight', trucker.code, 'part load', 'trip',
-                   'Road haulage Santos to Louveira, part load',
+                   'Road haulage Santos to Moty plant, part load',
                    f'{customs.VAN_PER_TRIP:.2f}')]
     rows += [_rate('surcharge', trucker.code, '', 'lot', name, 'per tariff')
              for name in trucker.surcharges]

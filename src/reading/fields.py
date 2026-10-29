@@ -315,6 +315,21 @@ def _kind(rows, found):
 EQUIPMENT = re.compile(r'^(20GP|40GP|40HC|LOOSE|LCL)$')
 
 
+def _place_starts(tokens, at):
+    """Where the destination begins, in a strip that prints two place
+    names side by side with nothing between them.
+
+    Both names can hold several words, so counting from either end gets
+    one of them wrong: "Santos Moty plant" is Santos to the Moty plant,
+    not "Santos Moty" to a plant. A place name starts with a capital, so
+    the lowercase words at the end belong to the word before them.
+    """
+    starts = at - 1
+    while starts > 1 and tokens[starts][:1].islower():
+        starts -= 1
+    return starts
+
+
 def _shipment_strip(rows, found):
     """The strip under the parties: origin, destination, equipment,
     vessel, gross weight and volume, labels on one line and values on the
@@ -329,8 +344,9 @@ def _shipment_strip(rows, found):
                    if EQUIPMENT.match(token)), None)
         if at is None or at < 2 or len(tokens) < at + 3:
             return
-        found.origin = ' '.join(tokens[:at - 1])
-        found.destination = tokens[at - 1]
+        starts = _place_starts(tokens, at)
+        found.origin = ' '.join(tokens[:starts])
+        found.destination = ' '.join(tokens[starts:at])
         # A booking of several boxes prints them joined: 40HC + 20GP.
         end = at + 1
         while end + 1 < len(tokens) and tokens[end] == '+' \

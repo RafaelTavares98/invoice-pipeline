@@ -31,7 +31,7 @@ LORE = {
     'KNG': 'A logistics group that hauls containers by road and rents Moty a '
            'bonded warehouse bay by the month.',
     'TLV': 'The truck company that takes every shipment from Santos up to the '
-           'plant in Louveira, billed in reais.',
+           'Moty plant, billed in reais.',
     'SCA': 'The customs broker in Santos: it registers each import, sends the '
            'duty statement, and bills its own fees under a contract.',
     'TVA': 'The bonded terminal in Santos where cargo waits for clearance; it '

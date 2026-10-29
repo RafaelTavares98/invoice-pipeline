@@ -1,7 +1,7 @@
 """The answer key for a whole run.
 
 One invoice on its own proves little. What the cost desk is actually asked
-is: what did it cost to land this part in Louveira? That needs the order,
+is: what did it cost to land this part at the Moty plant? That needs the order,
 the goods invoice, the shipment, and every freight invoice against it.
 
 This module writes that chain down, so whatever reads the mailbox later can

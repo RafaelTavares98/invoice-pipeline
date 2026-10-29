@@ -46,7 +46,7 @@ def books():
             issued='2026-05-10', fx_rate='5.00'),
         doc('SCA-2', 'broker', 'Santos Comissaria', 'BRL', '2000.00',
             issued='2026-05-10'),
-        doc('TLV-1', 'freight', 'Transportes Louveira', 'BRL', '4000.00',
+        doc('TLV-1', 'freight', 'Transportes Lima Vieira', 'BRL', '4000.00',
             issued='2026-05-10'),
         doc('MRK-2', 'local', 'Marsk Line', 'BRL', '1000.00',
             issued='2026-05-10'),
@@ -67,7 +67,7 @@ def books():
         line('SCA-1', 'Taxa Siscomex', 1, '214.50', '214.50'),
         line('SCA-1', 'ICMS SP', '10000.00', '0.18', '1800.00'),
         line('SCA-2', 'Customs clearance fee', 1, '2000.00', '2000.00'),
-        line('TLV-1', 'Road haulage Santos to Louveira, 40HC', 1, '4000.00', '4000.00'),
+        line('TLV-1', 'Road haulage Santos to Moty plant, 40HC', 1, '4000.00', '4000.00'),
         line('MRK-2', 'Terminal handling (capatazia)', 1, '1000.00', '1000.00'),
         line('TVA-1', 'Armazenagem FCL, 1o periodo', 1, '600.00', '600.00'),
     ]
@@ -76,7 +76,7 @@ def books():
              'PM-024G': {'unit_weight_g': D('30'), 'unit_m3': D('0.0007'),
                          'ncm': '8424.89.90'}}
     issuers = {'Ningbo Caplink': 'NCL', 'Marsk Line': 'MRK',
-               'Santos Comissaria': 'SCA', 'Transportes Louveira': 'TLV'}
+               'Santos Comissaria': 'SCA', 'Transportes Lima Vieira': 'TLV'}
     ptax = {date(2026, 4, 6): D('5.50')}
     return landed.Books(invoices, lines, items, issuers, ptax)
 

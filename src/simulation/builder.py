@@ -94,7 +94,7 @@ def freight_invoice(carrier, seed):
 
 
 def _road_haulage(rng, carrier, issued, number):
-    """The truck from Santos to Louveira, per trip, in the runs that leave
+    """The truck from Santos to the Moty plant, per trip, in the runs that leave
     the Brazilian documents out."""
     trip = pricing.freight_rate(rng, 1420.0, carrier.price_bias,
                                 carrier.price_spread)

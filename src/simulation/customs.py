@@ -6,7 +6,7 @@ When a shipment lands in Santos, three documents follow it, all in reais:
   import declaration (DUIMP): the customs value, then each tax on its
   base, at its rate;
 - the broker's own service invoice;
-- the truck from the port to Louveira.
+- the truck from the port to the Moty plant.
 
 The customs value is the goods plus the international freight plus the
 insurance, converted at the day's rate. II and IPI hang on each item's
@@ -35,7 +35,7 @@ FEES = {
 #: Port storage, per day, in reais.
 STORAGE_PER_DAY = (Decimal('380.00'), Decimal('520.00'))
 
-#: The truck from Santos to Louveira, per trip, in reais.
+#: The truck from Santos to the Moty plant, per trip, in reais.
 TRUCK_PER_TRIP = 3900.0
 VAN_PER_TRIP = 1200.0
 GRIS = Decimal('0.003')
@@ -159,7 +159,7 @@ def broker_invoice(rng, shipment, day, number):
 
 
 def trucker_invoice(rng, shipment, day, cargo_brl, number, box):
-    """The truck from Santos to Louveira, in reais: one truck per
+    """The truck from Santos to the Moty plant, in reais: one truck per
     container for FCL, a van for a part load, shared space or air."""
     boxes = getattr(shipment, 'boxes', ())
     part_load = getattr(shipment, 'load', '') in ('LCL', 'air') or \
@@ -167,7 +167,7 @@ def trucker_invoice(rng, shipment, day, cargo_brl, number, box):
     base = VAN_PER_TRIP if part_load else TRUCK_PER_TRIP
     trip = _money(rng.lognormvariate(0, 0.10) * base)
     lines = [Line(
-        description=(f'Road haulage Santos to Louveira, '
+        description=(f'Road haulage Santos to Moty plant, '
                      f'{"part load" if part_load else shipment.container}'),
         quantity=Decimal(len(boxes) or 1), unit_price=trip, unit='trip',
         weight_kg=shipment.weight_kg, volume_m3=shipment.volume_m3)]

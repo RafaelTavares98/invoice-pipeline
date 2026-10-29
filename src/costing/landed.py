@@ -1,7 +1,7 @@
 """The landed cost of every part, from what the reader filed.
 
-This is the department's report: what each order line cost to land in
-Louveira, in reais. It reads the two CSV files the reader writes, plus
+This is the department's report: what each order line cost to land at
+the Moty plant, in reais. It reads the two CSV files the reader writes, plus
 the desk's records: the item master, the PTAX table, the dock receipts
 and the shipments. It never looks at the answer key.
 

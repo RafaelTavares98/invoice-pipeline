@@ -22,7 +22,7 @@ BILL TO SHIP TO Invoice no. NCL-2026-3140
 Moty Cosmeticos Ltda. Moty Cosmeticos Ltda. Date of issue 2026-04-11
 Attn: Production and Logistics Cost Management Inbound Dock 2 Payment due 2026-05-21
 Rodovia Anhanguera, km 94, Galpao 3 Rodovia Anhanguera, km 94 Currency USD
-Louveira, SP 13290-000 Louveira, SP 13290-000 Reference PO-41021
+Jundiai, SP 13200-000 Jundiai, SP 13200-000 Reference PO-41021
 Brazil Brazil Incoterm FOB Ningbo
 CNPJ: 18.442.907/0001-55
 costs@moty.example
@@ -47,7 +47,7 @@ BILL TO SHIP TO Invoice no. MRK-2026-8743
 Moty Cosmeticos Ltda. Moty Cosmeticos Ltda. Invoice date 2026-04-18
 Attn: Production and Logistics Cost Management Inbound Dock 2 Due 2026-05-18
 Rodovia Anhanguera, km 94, Galpao 3 Rodovia Anhanguera, km 94 Currency USD
-Louveira, SP 13290-000 Louveira, SP 13290-000 Reference B/L MRK1558444
+Jundiai, SP 13200-000 Jundiai, SP 13200-000 Reference B/L MRK1558444
 ORIGIN DESTINATION EQUIPMENT VESSEL GROSS WEIGHT KG VOLUME M3
 Ningbo Santos 40GP MV Ever Dawn / voy. 43E 10116.6 34.06
 Charge description Units Weight kg Volume m3 Rate Amount USD
@@ -69,7 +69,7 @@ India
 GSTIN: 06AAFCA9321L1ZP
 BILL TO Invoice no. ARL-2026-3135
 Moty Cosmeticos Ltda. Date of issue 23/04/2026
-Louveira, SP 13290-000 Payment due 22/06/2026
+Jundiai, SP 13200-000 Payment due 22/06/2026
 Brazil Reference PO-41027
 Part no. Description of goods HS code Qty Unit price Amount USD
 LB-GL01 Adhesive label, 4 colour, gloss laminate 4821.10 400.000 0,0283 11.320,00
@@ -229,7 +229,7 @@ Republic of Korea
 Business reg.: 131-86-40925
 BILL TO Invoice no. HCV-2026-3216
 Moty Cosmeticos Ltda. Date of issue 05/12/2026
-Louveira, SP 13290-000 Payment due 07/01/2026
+Jundiai, SP 13200-000 Payment due 07/01/2026
 Brazil Reference PO-41066
 Part no. Description of goods HS code Qty Unit price Amount USD
 JA-050D Acrylic jar, 50 g, double wall 3923.10 9,000 0.812 7,308.00

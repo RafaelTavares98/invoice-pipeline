@@ -275,7 +275,7 @@ ALL_ISSUERS = FACTORIES + CARRIERS
 #: the quiet run and its ten issuers stay as they are.
 TRUCKER = Carrier(
     code='TLV',
-    name='Transportes Louveira Ltda.',
+    name='Transportes Lima Vieira Ltda.',
     address=('Av. Portuaria, 1450, Macuco', 'Santos, SP 11015-000',
              'Brazil'),
     country='Brazil',

@@ -175,7 +175,7 @@ Thirteen bill Moty. New suppliers also join during the year.
 | MRK | Marsk Line Agencies | FCL ocean freight; local charges from its Santos office | USD, BRL | wide ledger | `2026-04-11` | `1,234.56` |
 | CSM | COSMO Shipping Lines | FCL ocean freight; local charges from its Santos office | USD, BRL | closed grid | `2026-04-11` | `1,234.56` |
 | KNG | Keuhne & Nager Logistics | road haulage in the small test runs; a monthly warehouse rent in the real run | USD | coloured rule | `11/04/2026` | `1.234,56` |
-| TLV | Transportes Louveira | the truck from Santos, per container or part load | BRL | tinted band | `11/04/2026` | `1.234,56` |
+| TLV | Transportes Lima Vieira | the truck from Santos to the Moty plant, per container or part load | BRL | tinted band | `11/04/2026` | `1.234,56` |
 | SCA | Santos Comissaria Aduaneira | duty statements, broker fees | BRL | no rules at all | `11/04/2026` | `1.234,56` |
 | TVA | Terminal Valongo Alfandegado | storage in the bonded terminal | BRL | closed grid | `11/04/2026` | `1.234,56` |
 
@@ -711,6 +711,18 @@ of the period, 1 January to 14 October, read from Gmail.
 | Scan, poor (ARL, 150 dpi, black and white) | 8 / 8 | 0 | 0 |
 | Scan, poor and askew (ARL) | 2 / 13 | 11 | 0 |
 | **All** | **992 / 1,003** | **11** | **0** |
+
+"Right" here means the four key fields: the number, the grand total, the
+kind of document and the currency. "Flagged for a person" means one of
+those four could not be settled, so the row went to a person rather than
+being guessed at.
+
+A document can be right on all four and still carry a note. **22 of the
+1,003 carry one**: the 11 above, plus 11 more where the lines do not add
+up to the printed subtotal, or where no issue date was found on the page.
+The landed cost dashboard counts those 22, because a note is work for a
+person whether or not the key fields survived it. Neither number is the
+other's correction.
 
 ---
 
